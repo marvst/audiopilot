@@ -1,0 +1,59 @@
+<hgroup>
+    <h1>Set up your Daily Drive</h1>
+    <p><%=session['user_email']%></p>
+</hgroup>
+<hr />
+<form method="post" target="/setup">
+    <section>
+        <h5>Which tracks would you like to listen?</h5>
+        <fieldset>
+            <label>
+                <input type="radio" name="tracks" id="top-tracks" checked />
+                My top tracks
+            </label>
+            <fieldset role="group">
+                <label>
+                <input type="radio" name="tracks" id="playlist" />
+                Specific playlist
+                <select 
+                    name="playlist" 
+                    aria-label="Select one of your playlists..."
+                    style="margin-top: 15px"
+                >
+                    <option selected disabled value="">
+                        Select one of your playlists...
+                    </option>
+                    <% @playlists.each do |playlist| %>
+                        <option value="<%= playlist['id'] %>">
+                            <%= playlist['name'] %>
+                        </option>
+                    <% end %>
+                </select>
+            </label>
+            </fieldset>
+        </fieldset>
+    </section>
+
+    <section>
+        <hgroup>
+            <h5>From which shows would you like the latest episodes to be included?</h5>
+            <small>Please note that if the episode has already been listened, it will be skipped.</small>
+        </hgroup>
+        <textarea
+            name="shows"
+            placeholder="Add their Spotify's show links split by comma"
+            aria-label="List of shows"
+        >
+        </textarea>
+    </section>
+
+     <section>
+        <h5>After how many tracks would you like to listen to a show's episode?</h5>
+        <input type="number" value="5">
+    </section>
+
+    <input
+        type="submit"
+        value="Save changes"
+    />
+</form>
