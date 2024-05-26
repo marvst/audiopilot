@@ -1,37 +1,41 @@
 <hgroup>
     <h1>Set up your Daily Drive</h1>
-    <p><%=session['user_email']%></p>
+    <p><%=session['spotify_user_email']%></p>
 </hgroup>
 <hr />
 <form method="post" target="/setup">
     <section>
         <h5>Which tracks would you like to listen?</h5>
-        <fieldset>
-            <label>
-                <input type="radio" name="tracks" id="top-tracks" checked />
-                My top tracks
-            </label>
-            <fieldset role="group">
-                <label>
-                <input type="radio" name="tracks" id="playlist" />
-                Specific playlist
-                <select 
-                    name="playlist" 
-                    aria-label="Select one of your playlists..."
-                    style="margin-top: 15px"
-                >
-                    <option selected disabled value="">
-                        Select one of your playlists...
-                    </option>
-                    <% @playlists.each do |playlist| %>
-                        <option value="<%= playlist['id'] %>">
+        <details class="dropdown" style="max-height: 100px">
+            <summary>
+                Select an option
+            </summary>
+            <ul>
+                <small style="padding: 15px">Spotify Options</small>
+                <li>
+                    <label>
+                        <input type="radio" name="playlist" value="top-tracks" />
+                        Top tracks
+                    </label>
+                </li>
+                <li>
+                    <label>
+                        <input type="radio" name="playlist" value="surprise-me" disabled />
+                        Surprise me
+                    </label>
+                </li>
+                <small style="padding: 15px">Your Playlists</small>
+                <% @playlists.each do |playlist| %>
+                    <li>
+                        <label>
+                            <input type="radio" name="playlist" value="<%= playlist['id'] %>" />
                             <%= playlist['name'] %>
-                        </option>
-                    <% end %>
-                </select>
-            </label>
-            </fieldset>
-        </fieldset>
+                        </label>
+                    </li>
+                <% end %>
+            </ul>
+           
+        </details>
     </section>
 
     <section>

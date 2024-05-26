@@ -1,8 +1,2 @@
-<h1>Access your account</h1>
-<%# <a href="/auth">Login with Spotify</a> %>
-<form action="/auth" method="post">
-    <input 
-        type="submit" 
-        value="Login with Spotify" 
-    />
-</form>
+<h2>Hey, please log in to access your account</h2>
+<a href="<%= @spotify_auth_url %>" role="button">Log in with Spotify</a>
