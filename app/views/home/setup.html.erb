@@ -1,6 +1,18 @@
+<% if flash[:info] %>
+    <article style="background-color: #1b5e20; color: #fff">
+        <%= flash[:info] %>
+    </article>
+<% end %>
+
+<% if flash[:error] %>
+    <article style="background-color: #D93526; color: #fff">
+        <%= flash[:error] %>
+    </article>
+<% end %>
+
 <hgroup>
     <h1>Set up your Daily Drive</h1>
-    <p><%=session['spotify_user_email']%></p>
+    <p><%=session['user_email']%></p>
 </hgroup>
 <hr />
 <form method="post" target="/setup">
@@ -53,7 +65,7 @@
 
      <section>
         <h5>After how many tracks would you like to listen to a show's episode?</h5>
-        <input type="number" value="5">
+        <input type="number" value="5" name="split">
     </section>
 
     <input

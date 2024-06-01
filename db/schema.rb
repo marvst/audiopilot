@@ -10,12 +10,23 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_05_25_053926) do
+ActiveRecord::Schema[7.1].define(version: 2024_05_26_162502) do
+  create_table "settings", force: :cascade do |t|
+    t.integer "user_id", null: false
+    t.string "key"
+    t.string "value"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["user_id"], name: "index_settings_on_user_id"
+  end
+
   create_table "users", force: :cascade do |t|
     t.string "email"
-    t.string "refresh_token"
+    t.string "spotify_user_id"
+    t.string "spotify_refresh_token"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
   end
 
+  add_foreign_key "settings", "users"
 end

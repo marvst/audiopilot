@@ -1,18 +1,6 @@
 class HomeController < ApplicationController
   def index
-    if user_logged_in?
-      puts
-      puts
-      puts
-      puts
-      puts
-      puts "USER IS ALREADY LOGGED IN"
-      puts
-      puts
-      puts
-      puts
-      redirect_to "/setup"
-    end
+    redirect_to "/setup" if user_logged_in?
 
     @spotify_auth_url = "https://accounts.spotify.com/authorize?client_id=#{ENV['SPOTIFY_CLIENT_ID']}&response_type=code&redirect_uri=#{ENV['SPOTIFY_CALLBACK_URL']}&scope=user-top-read playlist-modify-private user-read-email"
   end
@@ -40,11 +28,15 @@ class HomeController < ApplicationController
         }
     ).parsed_response
 
-    user = User.find_or_create_by(email: user_details['email'])
+    user = User.find_or_create_by(
+      email: user_details['email'],
+      spotify_user_id: user_details['id'],
+      spotify_refresh_token: access_tokens['refresh_token']
+    )
 
     session['user_id'] = user.id
     session['spotify_user_id'] = user_details['id']
-    session['spotify_user_email'] = user_details['email']
+    session['user_email'] = user_details['email']
     session['spotify_refresh_token'] = access_tokens['refresh_token']
     session['spotify_access_token'] = access_tokens['access_token']
 
@@ -63,11 +55,34 @@ class HomeController < ApplicationController
   end
 
   def save_setup
-    playlist_id = params[:playlist]
-    shows_ids = params[:shows].split(",")
+    Setting.destroy_by(user_id: session['user_id'])
 
+    Setting.create(
+      user_id: session['user_id'],
+      key: "PLAYLIST",
+      value: params[:playlist]
+    )
 
-    # TODO: Save information to the database
+    Setting.create(
+      user_id: session['user_id'],
+      key: "SPLIT_SIZE",
+      value: params[:split].to_i
+    )
+    
+    params[:shows].split(",").each do |show|
+      Setting.create(
+        user_id: session['user_id'],
+        key: "SHOW",
+        value: show
+      ) 
+    end
+
+    flash[:info] = "Changes saved successfully."
+  rescue Exception => e
+    flash[:error] = "Failed to save the changes. Try again."
+    puts "ERROR: #{e}"
+  ensure
+    redirect_to "/setup"
   end
 
   def log_out
@@ -81,7 +96,7 @@ class HomeController < ApplicationController
   def user_logged_in?
     session['user_id'] &&
     session['spotify_user_id'] &&
-    session['spotify_user_email'] &&
+    session['user_email'] &&
     session['spotify_refresh_token'] &&
     session['spotify_access_token']
   end
