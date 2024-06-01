@@ -46,7 +46,6 @@
                     </li>
                 <% end %>
             </ul>
-           
         </details>
     </section>
 
@@ -55,12 +54,21 @@
             <h5>From which shows would you like the latest episodes to be included?</h5>
             <small>Please note that if the episode has already been listened, it will be skipped.</small>
         </hgroup>
-        <textarea
-            name="shows"
-            placeholder="Add their Spotify's show links split by comma"
-            aria-label="List of shows"
-        >
-        </textarea>
+        <details class="dropdown" style="max-height: 100px">
+            <summary>
+                Select one or more options
+            </summary>
+            <ul>
+                <% @shows.each do |show| %>
+                    <li>
+                        <label>
+                            <input type="checkbox" name="shows[]" value="<%= show['show']['id'] %>" />
+                            <%= show['show']['name'] %>
+                        </label>
+                    </li>
+                <% end %>
+            </ul>
+        </details>
     </section>
 
      <section>
