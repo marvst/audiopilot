@@ -27,12 +27,13 @@ class HomeController < ApplicationController
             "Authorization" => "Bearer #{access_tokens['access_token']}"
         }
     ).parsed_response
-
-    user = User.find_or_create_by(
+    
+    user = User.find_by(spotify_user_id: user_details['id'])
+    user = User.create(
       email: user_details['email'],
       spotify_user_id: user_details['id'],
       spotify_refresh_token: access_tokens['refresh_token']
-    )
+    ) unless user
 
     session['user_id'] = user.id
     session['spotify_user_id'] = user_details['id']
