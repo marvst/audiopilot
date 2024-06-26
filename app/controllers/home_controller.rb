@@ -102,9 +102,19 @@ class HomeController < ApplicationController
     User.all.each do |user|
       access_token = generate_access_token_from_refresh_token(user[:spotify_refresh_token])
 
-      # tracks = get_user_top_tracks(access_token)
+      tracks = user.settings.where(key: "PLAYLIST").map do |playlist|
+        get_tracks_from_playlist(
+          playlist.value, 
+          access_token
+        )
+      end
 
-      todays_episodes = get_last_episodes_from_user_shows(access_token, user.settings.where(key: 'SHOW_ID')).select do |episode|
+      debugger
+
+      latest_episodes = get_lastest_episodes_from_show(
+        user.settings.where(key: 'SHOW_ID'),
+        access_token
+      ).select do |episode|
           release_date =  Date.parse(episode['release_date'])
 
           release_date == Date.today ||
@@ -145,6 +155,20 @@ class HomeController < ApplicationController
     ).parsed_response
 
     response['items']
+  end
+
+  def get_tracks_from_playlist(playlist_id, access_token)
+    response = HTTParty.get(
+      "https://api.spotify.com/v1/playlists/#{playlist_id}/tracks",
+      headers: {
+          "Authorization" => "Bearer #{access_token}"
+      },
+      query: {
+        fields: "items(track.id)"
+      }
+    ).parsed_response
+
+    response['items'].map { |item| item["track"]["id"] }
   end
 
   def update_daily_drive_playlist(access_token, playlist_id, tracks, episodes)
@@ -207,7 +231,7 @@ class HomeController < ApplicationController
         query: {
             grant_type: "refresh_token",
             refresh_token: refresh_token,
-            redirect_uri: CALLBACK_URI
+            redirect_uri: ENV['SPOTIFY_CALLBACK_URL']
         },
         headers: {
             "Authorization" => "Basic #{token}",
