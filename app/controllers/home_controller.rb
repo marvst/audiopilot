@@ -2,7 +2,7 @@ class HomeController < ApplicationController
   def index
     redirect_to "/setup" if user_logged_in?
 
-    @spotify_auth_url = "https://accounts.spotify.com/authorize?client_id=#{ENV['SPOTIFY_CLIENT_ID']}&response_type=code&redirect_uri=#{ENV['SPOTIFY_CALLBACK_URL']}&scope=user-top-read playlist-modify-private user-read-email user-library-read"
+    @spotify_auth_url = "https://accounts.spotify.com/authorize?client_id=#{ENV['SPOTIFY_CLIENT_ID']}&response_type=code&redirect_uri=#{ENV['SPOTIFY_CALLBACK_URL']}&scope=user-top-read playlist-modify-private user-read-email user-library-read user-read-playback-position"
   end
 
   def callback
@@ -107,21 +107,16 @@ class HomeController < ApplicationController
           playlist.value, 
           access_token
         )
+      end.first
+
+      episodes = user.settings.where(key: "SHOW").map do |show|
+        get_latest_episode_from_show(
+          show.value, 
+          access_token
+        )
       end
 
-      debugger
-
-      latest_episodes = get_lastest_episodes_from_show(
-        user.settings.where(key: 'SHOW_ID'),
-        access_token
-      ).select do |episode|
-          release_date =  Date.parse(episode['release_date'])
-
-          release_date == Date.today ||
-          [0, 6].include?(release_date.wday) && Date.today.wday == 1
-      end
-
-      updated = update_daily_drive_playlist(access_token, config[:playlist], tracks, todays_episodes)
+      updated = update_daily_drive_playlist("4WxknFY7iRzGrs2OeIu36k", tracks, episodes, access_token)
 
       if updated
           return "All good :)" 
@@ -157,70 +152,61 @@ class HomeController < ApplicationController
     response['items']
   end
 
+  def update_daily_drive_playlist(playlist, tracks, episodes, access_token)
+    tracks_and_episodes = []
+
+    if episodes.empty?
+      tracks_and_episodes = tracks
+    else
+      sliced_tracks = tracks.each_slice(tracks.length / episodes.length).to_a
+    
+      counter = 0
+      episodes.each do |episode|
+        tracks_and_episodes.push([episode] + sliced_tracks[counter])
+    
+        counter += 1
+      end
+    end
+
+    uris = tracks_and_episodes.flatten.map { |item| item['uri'] }
+
+    response = HTTParty.put(
+      "https://api.spotify.com/v1/playlists/#{playlist}/tracks",
+      headers: {
+        "Authorization" => "Bearer #{access_token}"
+      },
+      query: {
+        uris: uris.join(',')
+      }
+    ).parsed_response
+
+    response 
+  end
+
   def get_tracks_from_playlist(playlist_id, access_token)
     response = HTTParty.get(
       "https://api.spotify.com/v1/playlists/#{playlist_id}/tracks",
       headers: {
           "Authorization" => "Bearer #{access_token}"
-      },
-      query: {
-        fields: "items(track.id)"
       }
     ).parsed_response
 
-    response['items'].map { |item| item["track"]["id"] }
+    response['items'].map { |item| item["track"] }
   end
 
-  def update_daily_drive_playlist(access_token, playlist_id, tracks, episodes)
-      tracks_and_episodes = []
+  def get_latest_episode_from_show(show_id, access_token)
+    response = HTTParty.get(
+      "https://api.spotify.com/v1/shows/#{show_id}/episodes",
+      headers: {
+          "Authorization" => "Bearer #{access_token}"
+      },
+      query: {
+          market: 'US',
+          limit: 1
+      }
+    ).parsed_response
 
-      if episodes.empty?
-          tracks_and_episodes = tracks
-      else
-          sliced_tracks = tracks.each_slice(tracks.length / episodes.length).to_a
-      
-          counter = 0
-          episodes.each do |episode|
-              tracks_and_episodes.push([episode] + sliced_tracks[counter])
-      
-              counter += 1
-          end
-      end
-
-      uris = tracks_and_episodes.flatten.map { |item| item['uri'] }
-
-      response = HTTParty.put(
-          "https://api.spotify.com/v1/playlists/#{playlist_id}/tracks",
-          headers: {
-              "Authorization" => "Bearer #{access_token}"
-          },
-          query: {
-              uris: uris.join(',')
-          }
-      ).parsed_response
-
-      response 
-  end
-
-  def get_last_episodes_from_user_shows(access_token, shows)
-      last_episodes = []
-
-      shows.each do |show|
-          response = HTTParty.get(
-              "https://api.spotify.com/v1/shows/#{show[:value]}/episodes",
-              headers: {
-                  "Authorization" => "Bearer #{access_token}"
-              },
-              query: {
-                  market: 'US',
-                  limit: 1
-              }
-          ).parsed_response
-
-          last_episodes.push(response['items'][0])
-      end
-
-      last_episodes
+    response['items'][0] unless response['items'][0]["resume_point"]["fully_played"]
   end
 
   def generate_access_token_from_refresh_token(refresh_token)
