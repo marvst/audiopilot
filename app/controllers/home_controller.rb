@@ -65,6 +65,7 @@ class HomeController < ApplicationController
     Setting.destroy_by(key: "SHOW")
     Setting.destroy_by(key: "PLAYLIST")
     Setting.destroy_by(key: "SPLIT_SIZE")
+    Setting.destroy_by(key: "TIME_TO_GENERATE")
 
     Setting.create(
       user_id: session['user_id'],
@@ -76,6 +77,12 @@ class HomeController < ApplicationController
       user_id: session['user_id'],
       key: "SPLIT_SIZE",
       value: params[:split].to_i
+    )
+
+    Setting.create(
+      user_id: session['user_id'],
+      key: "TIME_TO_GENERATE",
+      value: params[:time]
     )
 
     params[:shows].each do |show|
@@ -120,7 +127,6 @@ class HomeController < ApplicationController
 
       daily_drive_playlist = user.settings.where(key: "DAILY_DRIVE_PLAYLIST").first.value
 
-      # TODO: Check if the playlist is deleted on Spotify
       playlist_details = follows_playlist?(daily_drive_playlist, access_token)
 
       if daily_drive_playlist.nil? || !playlist_details.first
