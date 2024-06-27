@@ -116,12 +116,11 @@ class HomeController < ApplicationController
         )
       end
 
-      debugger
+      daily_drive_playlist = user.settings.where(key: "DAILY_DRIVE_PLAYLIST").first.value
 
-      # if the playlist does not exist yet, then create it and save the ID
-      daily_drive_playlist = user.settings.where(key: "DAILY_DRIVE_PLAYLIST")
-      
-      unless daily_drive_playlist.exists?
+      # TODO: Check if the playlist is deleted on Spotify
+
+      if daily_drive_playlist.nil?
         daily_drive_playlist = create_playlist(access_token)
 
         Setting.create(
@@ -134,10 +133,12 @@ class HomeController < ApplicationController
       updated = update_daily_drive_playlist(daily_drive_playlist, tracks, episodes, access_token)
 
       if updated
-          return "All good :)" 
+        flash[:info] = "Playlist generated successfully."
       else
-          return "No good :("
+        flash[:error] = "Playlist not generated."
       end
+
+      redirect_to "/setup"
     end
   end
 
