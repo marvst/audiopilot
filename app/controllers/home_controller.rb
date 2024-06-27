@@ -62,7 +62,9 @@ class HomeController < ApplicationController
   end
 
   def save_setup
-    Setting.destroy_by(user_id: session['user_id'])
+    Setting.destroy_by(key: "SHOW")
+    Setting.destroy_by(key: "PLAYLIST")
+    Setting.destroy_by(key: "SPLIT_SIZE")
 
     Setting.create(
       user_id: session['user_id'],
@@ -119,8 +121,11 @@ class HomeController < ApplicationController
       daily_drive_playlist = user.settings.where(key: "DAILY_DRIVE_PLAYLIST").first.value
 
       # TODO: Check if the playlist is deleted on Spotify
+      playlist_details = follows_playlist?(daily_drive_playlist, access_token)
 
-      if daily_drive_playlist.nil?
+      if daily_drive_playlist.nil? || !playlist_details.first
+        Setting.destroy_by(key: "DAILY_DRIVE_PLAYLIST")
+
         daily_drive_playlist = create_playlist(access_token)
 
         Setting.create(
@@ -260,4 +265,15 @@ class HomeController < ApplicationController
 
     response['id']
   end
+end
+
+def follows_playlist?(daily_drive_playlist, access_token)
+  response = HTTParty.get(
+      "https://api.spotify.com/v1/playlists/#{daily_drive_playlist}/followers/contains",
+      headers: {
+          "Authorization" => "Bearer #{access_token}"
+      }
+  ).parsed_response
+
+  response
 end
