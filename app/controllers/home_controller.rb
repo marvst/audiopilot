@@ -2,7 +2,7 @@ class HomeController < ApplicationController
   def index
     redirect_to "/setup" if user_logged_in?
 
-    @spotify_auth_url = "https://accounts.spotify.com/authorize?client_id=#{ENV['SPOTIFY_CLIENT_ID']}&response_type=code&redirect_uri=#{ENV['SPOTIFY_CALLBACK_URL']}&scope=user-top-read playlist-modify-private user-read-email user-library-read user-read-playback-position"
+    @spotify_auth_url = "https://accounts.spotify.com/authorize?client_id=#{ENV['SPOTIFY_CLIENT_ID']}&response_type=code&redirect_uri=#{ENV['SPOTIFY_CALLBACK_URL']}&scope=user-top-read playlist-modify-private playlist-modify-public user-read-email user-library-read user-read-playback-position"
   end
 
   def callback
@@ -116,7 +116,22 @@ class HomeController < ApplicationController
         )
       end
 
-      updated = update_daily_drive_playlist("4WxknFY7iRzGrs2OeIu36k", tracks, episodes, access_token)
+      debugger
+
+      # if the playlist does not exist yet, then create it and save the ID
+      daily_drive_playlist = user.settings.where(key: "DAILY_DRIVE_PLAYLIST")
+      
+      unless daily_drive_playlist.exists?
+        daily_drive_playlist = create_playlist(access_token)
+
+        Setting.create(
+          user_id: session['user_id'],
+          key: "DAILY_DRIVE_PLAYLIST",
+          value: daily_drive_playlist
+        )
+      end
+
+      updated = update_daily_drive_playlist(daily_drive_playlist, tracks, episodes, access_token)
 
       if updated
           return "All good :)" 
@@ -226,5 +241,22 @@ class HomeController < ApplicationController
     ).parsed_response
 
     response['access_token']
+  end
+
+  def create_playlist(access_token)
+    response = HTTParty.post(
+      "https://api.spotify.com/v1/users/#{session['spotify_user_id']}/playlists",
+      headers: {
+          "Authorization" => "Bearer #{access_token}"
+      },
+      body: JSON.generate(
+        {
+          name: "Custom Daily Drive",
+          public: false
+        }
+      )
+    ).parsed_response
+
+    response['id']
   end
 end
