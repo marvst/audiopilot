@@ -53,12 +53,22 @@ class HomeController < ApplicationController
         "Authorization" => "Bearer #{session['spotify_access_token']}"
       }
     ).parsed_response['items']
+    
     @shows = HTTParty.get(
       "https://api.spotify.com/v1/me/shows",
       headers: {
         "Authorization" => "Bearer #{session['spotify_access_token']}"
       }
     ).parsed_response['items']
+    
+    user = User.find_by(spotify_user_id: session['spotify_user_id'])
+
+    @selected_playlists = user.settings.where(key: "PLAYLIST").map { |playlist| playlist.value }
+    @selected_shows = user.settings.where(key: "SHOWS").map { |show| show.value }
+    @split = user.settings.where(key: "SPLIT_SIZE").first
+    @time_to_generate = user.settings.where(key: "TIME_TO_GENERATE").first
+
+    puts @split
   end
 
   def save_setup
