@@ -27,7 +27,7 @@
                 <% @playlists.each do |playlist| %>
                     <li>
                         <label>
-                            <input type="radio" name="playlist" value="<%= playlist['id'] %>" <%= if @selected_playlists.include?(playlist['id']) then checked="checked" end  %> />
+                            <input type="checkbox" name="playlists[]" value="<%= playlist['id'] %>" <%= if @selected_playlists.include?(playlist['id']) then checked="checked" end  %> />
                             <%= playlist['name'] %>
                         </label>
                     </li>

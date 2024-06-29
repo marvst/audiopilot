@@ -93,12 +93,6 @@ class HomeController < ApplicationController
 
     Setting.create(
       user_id: session['user_id'],
-      key: "PLAYLIST",
-      value: params[:playlist]
-    )
-
-    Setting.create(
-      user_id: session['user_id'],
       key: "SPLIT_SIZE",
       value: params[:split].to_i
     )
@@ -108,6 +102,14 @@ class HomeController < ApplicationController
       key: "TIME_TO_GENERATE",
       value: params[:time]
     )
+
+    params[:playlists].each do |playlist|
+      Setting.create(
+        user_id: session['user_id'],
+        key: "PLAYLIST",
+        value: playlist
+      ) 
+    end
 
     params[:shows].each do |show|
       Setting.create(
@@ -140,7 +142,7 @@ class HomeController < ApplicationController
           playlist.value, 
           access_token
         )
-      end.first
+      end.flatten
 
       episodes = user.settings.where(key: "SHOW").map do |show|
         get_latest_episode_from_show(
@@ -148,6 +150,8 @@ class HomeController < ApplicationController
           access_token
         )
       end
+
+      split_size = user.settings.where(key: "SPLIT_SIZE").first.value.to_i
 
       daily_drive_playlist = user.settings.where(key: "DAILY_DRIVE_PLAYLIST").first.value
 
@@ -165,7 +169,7 @@ class HomeController < ApplicationController
         )
       end
 
-      updated = update_daily_drive_playlist(daily_drive_playlist, tracks, episodes, access_token)
+      updated = update_daily_drive_playlist(daily_drive_playlist, tracks, episodes, split_size, access_token)
 
       if updated
         flash[:info] = "Playlist generated successfully."
@@ -195,13 +199,13 @@ class HomeController < ApplicationController
     response['items']
   end
 
-  def update_daily_drive_playlist(playlist, tracks, episodes, access_token)
+  def update_daily_drive_playlist(playlist, tracks, episodes, split_size, access_token)
     tracks_and_episodes = []
 
     if episodes.empty?
       tracks_and_episodes = tracks
     else
-      sliced_tracks = tracks.each_slice(tracks.length / episodes.length).to_a
+      sliced_tracks = tracks.each_slice(split_size).to_a
     
       counter = 0
       episodes.each do |episode|
@@ -209,9 +213,31 @@ class HomeController < ApplicationController
     
         counter += 1
       end
+
+      tracks_and_episodes.push(sliced_tracks[counter..])
     end
 
     uris = tracks_and_episodes.flatten.map { |item| item['uri'] }
+
+    # Get all tracks from the current playlist
+    current_tracks = HTTParty.get(
+      "https://api.spotify.com/v1/playlists/#{playlist}/tracks",
+      headers: {
+          "Authorization" => "Bearer #{access_token}"
+      }
+    ).parsed_response['items'].map { |item| item["track"] }
+
+    tracks_were_deleted = HTTParty.delete(
+      "https://api.spotify.com/v1/playlists/#{playlist}/tracks",
+      headers: {
+        "Authorization" => "Bearer #{access_token}"
+      },
+      body: {
+        tracks: current_tracks.map { |track| { uri: track['uri'] } }
+      }.to_json
+    ).parsed_response
+
+    raise StadardError unless tracks_were_deleted
 
     response = HTTParty.put(
       "https://api.spotify.com/v1/playlists/#{playlist}/tracks",
@@ -219,11 +245,13 @@ class HomeController < ApplicationController
         "Authorization" => "Bearer #{access_token}"
       },
       query: {
-        uris: uris.join(',')
+        uris: uris[0..90].join(',')
       }
     ).parsed_response
 
-    response 
+    puts response
+
+    response
   end
 
   def get_tracks_from_playlist(playlist_id, access_token)
