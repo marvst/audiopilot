@@ -81,7 +81,7 @@ class HomeController < ApplicationController
     flash[:error] = "Something weird happened. You'll have to log in again."
     
     redirect_to "/"
-      
+
     return
   end
 
@@ -134,51 +134,43 @@ class HomeController < ApplicationController
   end
 
   def generate_daily_drive
-    User.all.each do |user|
-      access_token = generate_access_token_from_refresh_token(user[:spotify_refresh_token])
+    user = User.find_by(spotify_user_id: session['spotify_user_id'])
 
-      tracks = user.settings.where(key: "PLAYLIST").map do |playlist|
-        get_tracks_from_playlist(
-          playlist.value, 
-          access_token
-        )
-      end.flatten
+    tracks = user.settings.where(key: "PLAYLIST").map do |playlist|
+      get_tracks_from_playlist(playlist.value)
+    end.flatten
 
-      episodes = user.settings.where(key: "SHOW").map do |show|
-        get_latest_episode_from_show(
-          show.value, 
-          access_token
-        )
-      end
-
-      split_size = user.settings.where(key: "SPLIT_SIZE").first.value.to_i
-
-      daily_drive_playlist = user.settings.where(key: "DAILY_DRIVE_PLAYLIST").first.value
-
-      playlist_details = follows_playlist?(daily_drive_playlist, access_token)
-
-      if daily_drive_playlist.nil? || !playlist_details.first
-        Setting.destroy_by(key: "DAILY_DRIVE_PLAYLIST")
-
-        daily_drive_playlist = create_playlist(access_token)
-
-        Setting.create(
-          user_id: session['user_id'],
-          key: "DAILY_DRIVE_PLAYLIST",
-          value: daily_drive_playlist
-        )
-      end
-
-      updated = update_daily_drive_playlist(daily_drive_playlist, tracks, episodes, split_size, access_token)
-
-      if updated
-        flash[:info] = "Playlist generated successfully."
-      else
-        flash[:error] = "Playlist not generated."
-      end
-
-      redirect_to "/setup"
+    episodes = user.settings.where(key: "SHOW").map do |show|
+      get_latest_episode_from_show(show.value)
     end
+
+    split_size = user.settings.where(key: "SPLIT_SIZE").first.value.to_i
+
+    daily_drive_playlist = user.settings.where(key: "DAILY_DRIVE_PLAYLIST").first.value
+
+    playlist_details = follows_playlist?(daily_drive_playlist)
+
+    if daily_drive_playlist.nil? || !playlist_details.first
+      Setting.destroy_by(key: "DAILY_DRIVE_PLAYLIST")
+
+      daily_drive_playlist = create_playlist()
+
+      Setting.create(
+        user_id: session['user_id'],
+        key: "DAILY_DRIVE_PLAYLIST",
+        value: daily_drive_playlist
+      )
+    end
+
+    updated = update_daily_drive_playlist(daily_drive_playlist, tracks, episodes, split_size)
+
+    if updated
+      flash[:info] = "Playlist generated successfully."
+    else
+      flash[:error] = "Playlist not generated."
+    end
+
+    redirect_to "/setup"
   end
 
   private
@@ -199,7 +191,7 @@ class HomeController < ApplicationController
     response['items']
   end
 
-  def update_daily_drive_playlist(playlist, tracks, episodes, split_size, access_token)
+  def update_daily_drive_playlist(playlist, tracks, episodes, split_size)
     tracks_and_episodes = []
 
     if episodes.empty?
@@ -223,14 +215,14 @@ class HomeController < ApplicationController
     current_tracks = HTTParty.get(
       "https://api.spotify.com/v1/playlists/#{playlist}/tracks",
       headers: {
-          "Authorization" => "Bearer #{access_token}"
+          "Authorization" => "Bearer #{session['spotify_access_token']}"
       }
     ).parsed_response['items'].map { |item| item["track"] }
 
     tracks_were_deleted = HTTParty.delete(
       "https://api.spotify.com/v1/playlists/#{playlist}/tracks",
       headers: {
-        "Authorization" => "Bearer #{access_token}"
+        "Authorization" => "Bearer #{session['spotify_access_token']}"
       },
       body: {
         tracks: current_tracks.map { |track| { uri: track['uri'] } }
@@ -242,7 +234,7 @@ class HomeController < ApplicationController
     response = HTTParty.put(
       "https://api.spotify.com/v1/playlists/#{playlist}/tracks",
       headers: {
-        "Authorization" => "Bearer #{access_token}"
+        "Authorization" => "Bearer #{session['spotify_access_token']}"
       },
       query: {
         uris: uris[0..90].join(',')
@@ -254,22 +246,22 @@ class HomeController < ApplicationController
     response
   end
 
-  def get_tracks_from_playlist(playlist_id, access_token)
+  def get_tracks_from_playlist(playlist_id)
     response = HTTParty.get(
       "https://api.spotify.com/v1/playlists/#{playlist_id}/tracks",
       headers: {
-          "Authorization" => "Bearer #{access_token}"
+          "Authorization" => "Bearer #{session['spotify_access_token']}"
       }
     ).parsed_response
 
     response['items'].map { |item| item["track"] }
   end
 
-  def get_latest_episode_from_show(show_id, access_token)
+  def get_latest_episode_from_show(show_id)
     response = HTTParty.get(
       "https://api.spotify.com/v1/shows/#{show_id}/episodes",
       headers: {
-          "Authorization" => "Bearer #{access_token}"
+          "Authorization" => "Bearer #{session['spotify_access_token']}"
       },
       query: {
           market: 'US',
@@ -299,11 +291,11 @@ class HomeController < ApplicationController
     response['access_token']
   end
 
-  def create_playlist(access_token)
+  def create_playlist()
     response = HTTParty.post(
       "https://api.spotify.com/v1/users/#{session['spotify_user_id']}/playlists",
       headers: {
-          "Authorization" => "Bearer #{access_token}"
+          "Authorization" => "Bearer #{session['spotify_access_token']}"
       },
       body: JSON.generate(
         {
@@ -317,11 +309,11 @@ class HomeController < ApplicationController
   end
 end
 
-def follows_playlist?(daily_drive_playlist, access_token)
+def follows_playlist?(daily_drive_playlist)
   response = HTTParty.get(
       "https://api.spotify.com/v1/playlists/#{daily_drive_playlist}/followers/contains",
       headers: {
-          "Authorization" => "Bearer #{access_token}"
+          "Authorization" => "Bearer #{session['spotify_access_token']}"
       }
   ).parsed_response
 
