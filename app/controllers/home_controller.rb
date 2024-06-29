@@ -2,7 +2,7 @@ class HomeController < ApplicationController
   def index
     redirect_to "/setup" if user_logged_in?
 
-    @spotify_auth_url = "https://accounts.spotify.com/authorize?client_id=#{ENV['SPOTIFY_CLIENT_ID']}&response_type=code&redirect_uri=#{ENV['SPOTIFY_CALLBACK_URL']}&scope=user-top-read playlist-modify-private playlist-modify-public user-read-email user-library-read user-read-playback-position"
+    @spotify_auth_url = "https://accounts.spotify.com/authorize?client_id=#{ENV['SPOTIFY_CLIENT_ID']}&response_type=code&redirect_uri=#{ENV['SPOTIFY_CALLBACK_URL']}&scope=user-top-read playlist-read-private playlist-modify-private playlist-modify-public user-read-email user-library-read user-read-playback-position"
   end
 
   def callback
@@ -57,6 +57,9 @@ class HomeController < ApplicationController
       "https://api.spotify.com/v1/me/playlists",
       headers: {
         "Authorization" => "Bearer #{session['spotify_access_token']}"
+      },
+      query: {
+        "limit": "50"
       }
     ).parsed_response['items']
     
@@ -64,6 +67,9 @@ class HomeController < ApplicationController
       "https://api.spotify.com/v1/me/shows",
       headers: {
         "Authorization" => "Bearer #{session['spotify_access_token']}"
+      },
+      query: {
+        "limit": "50"
       }
     ).parsed_response['items']
     
