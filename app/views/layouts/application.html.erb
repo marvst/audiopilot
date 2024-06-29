@@ -20,6 +20,7 @@
           <%= image_tag("spotify-logo.png", width: 200) %>
         </li>
       </ul>
+      <% if user_logged_in? %>
       <ul>
         <li>
           <form action="/generate" method="POST" >
@@ -27,6 +28,7 @@
           </form>
         </li>
       </ul>
+      <% end %>
     </nav>
     <main class="container">
       <%= yield %>

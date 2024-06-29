@@ -45,7 +45,13 @@ class HomeController < ApplicationController
   end
 
   def setup
-    redirect_to "/" unless user_logged_in?
+    user = User.find_by(spotify_user_id: session['spotify_user_id'])
+    
+    if !user_logged_in? || user.nil?
+      redirect_to "/"
+      
+      return
+    end
 
     @playlists = HTTParty.get(
       "https://api.spotify.com/v1/me/playlists",
@@ -61,14 +67,16 @@ class HomeController < ApplicationController
       }
     ).parsed_response['items']
     
-    user = User.find_by(spotify_user_id: session['spotify_user_id'])
-
     @selected_playlists = user.settings.where(key: "PLAYLIST").map { |playlist| playlist.value }
     @selected_shows = user.settings.where(key: "SHOW").map { |show| show.value }
     @split = user.settings.where(key: "SPLIT_SIZE").first
     @time_to_generate = user.settings.where(key: "TIME_TO_GENERATE").first
-
-    puts @split
+  rescue => e
+    flash[:error] = "Something weird happened. You'll have to log in again."
+    
+    redirect_to "/"
+      
+    return
   end
 
   def save_setup
@@ -164,14 +172,6 @@ class HomeController < ApplicationController
   end
 
   private
-
-  def user_logged_in?
-    session['user_id'] &&
-    session['spotify_user_id'] &&
-    session['user_email'] &&
-    session['spotify_refresh_token'] &&
-    session['spotify_access_token']
-  end
 
   def get_user_top_tracks(access_token)
     response = HTTParty.get(
