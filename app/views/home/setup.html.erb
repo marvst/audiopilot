@@ -40,7 +40,7 @@
                 <% @playlists.each do |playlist| %>
                     <li>
                         <label>
-                            <input type="radio" name="playlist" value="<%= playlist['id'] %>" />
+                            <input type="radio" name="playlist" value="<%= playlist['id'] %>" <%= if @selected_playlists.include?(playlist['id']) then checked="checked" end  %> />
                             <%= playlist['name'] %>
                         </label>
                     </li>
@@ -61,7 +61,7 @@
                 <% @shows.each do |show| %>
                     <li>
                         <label>
-                            <input type="checkbox" name="shows[]" value="<%= show['show']['id'] %>" />
+                            <input type="checkbox" name="shows[]" value="<%= show['show']['id'] %>" <%= if @selected_shows.include?(show['show']['id']) then checked="checked" end %> />
                             <%= show['show']['name'] %>
                         </label>
                     </li>
