@@ -25,6 +25,7 @@ production:
   encoding: unicode
   pool: 5
   host: <%= ENV.fetch("DB_HOST") %>
+  port: <%= ENV.fetch("DB_PORT") %>
   database: <%= ENV.fetch("DB_NAME") %>  
   username: <%= ENV.fetch("DB_USERNAME") %>
   password: <%= ENV.fetch("DB_PASSWORD") %>
