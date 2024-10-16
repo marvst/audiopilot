@@ -1,58 +1,61 @@
 class HomeController < ApplicationController
   def index
-    redirect_to "/setup" if user_logged_in?
+    if user_logged_in?
+      redirect_to "/setup" 
+      
+      return
+    end
 
     @spotify_auth_url = "https://accounts.spotify.com/authorize?client_id=#{ENV['SPOTIFY_CLIENT_ID']}&response_type=code&redirect_uri=#{ENV['SPOTIFY_CALLBACK_URL']}&scope=user-top-read playlist-read-private playlist-modify-private playlist-modify-public user-read-email user-library-read user-read-playback-position"
   end
 
   def callback
     token = Base64.strict_encode64("#{ENV['SPOTIFY_CLIENT_ID']}:#{ENV['SPOTIFY_CLIENT_SECRET']}")
-
+  
     access_tokens = HTTParty.post(
-        'https://accounts.spotify.com/api/token',
-        query: {
-            grant_type: "authorization_code",
-            code: params['code'],
-            redirect_uri: ENV['SPOTIFY_CALLBACK_URL']
-        },
-        headers: {
-            "Authorization" => "Basic #{token}",
-            "Content-Type" => "application/x-www-form-urlencoded"
-        }
+      'https://accounts.spotify.com/api/token',
+      query: {
+        grant_type: "authorization_code",
+        code: params['code'],
+        redirect_uri: ENV['SPOTIFY_CALLBACK_URL']
+      },
+      headers: {
+        "Authorization" => "Basic #{token}",
+        "Content-Type" => "application/x-www-form-urlencoded"
+      }
     ).parsed_response
-
+  
     user_details = HTTParty.get(
-        'https://api.spotify.com/v1/me',
-        headers: {
-            "Authorization" => "Bearer #{access_tokens['access_token']}"
-        }
+      'https://api.spotify.com/v1/me',
+      headers: {
+        "Authorization" => "Bearer #{access_tokens['access_token']}"
+      }
     ).parsed_response
-    
-    user = User.find_by(spotify_user_id: user_details['id'])
-    user = User.create(
-      email: user_details['email'],
-      spotify_user_id: user_details['id'],
-      spotify_refresh_token: access_tokens['refresh_token']
-    ) unless user
-
+  
+    user = User.find_or_create_by(spotify_user_id: user_details['id']) do |u|
+      u.email = user_details['email']
+      u.spotify_refresh_token = access_tokens['refresh_token']
+    end
+  
     session['user_id'] = user.id
     session['spotify_user_id'] = user_details['id']
     session['user_email'] = user_details['email']
     session['spotify_refresh_token'] = access_tokens['refresh_token']
     session['spotify_access_token'] = access_tokens['access_token']
-
+  
     redirect_to "/setup"
   end
-
+  
   def setup
     user = User.find_by(spotify_user_id: session['spotify_user_id'])
     
-    if !user_logged_in? || user.nil?
+    unless user_logged_in?
+      flash[:info] = "You need to log in"
       redirect_to "/"
       
       return
     end
-
+    # debugger
     @playlists = HTTParty.get(
       "https://api.spotify.com/v1/me/playlists",
       headers: {
@@ -75,8 +78,8 @@ class HomeController < ApplicationController
     
     @selected_playlists = user.settings.where(key: "PLAYLIST").map { |playlist| playlist.value }
     @selected_shows = user.settings.where(key: "SHOW").map { |show| show.value }
-    @split = user.settings.where(key: "SPLIT_SIZE").first
-    @time_to_generate = user.settings.where(key: "TIME_TO_GENERATE").first
+    @split = user.settings.where(key: "SPLIT_SIZE").first.value rescue 5
+    @time_to_generate = user.settings.where(key: "TIME_TO_GENERATE").first.value rescue 60
   rescue => e
     flash[:error] = "Something weird happened. You'll have to log in again."
     

@@ -69,3 +69,4 @@ end
 gem 'dotenv', groups: [:development, :test]
 gem 'base64'
 gem 'httparty'
+gem 'pg'
