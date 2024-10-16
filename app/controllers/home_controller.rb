@@ -149,7 +149,7 @@ class HomeController < ApplicationController
 
     split_size = user.settings.where(key: "SPLIT_SIZE").first.value.to_i
 
-    daily_drive_playlist = user.settings.where(key: "DAILY_DRIVE_PLAYLIST").first.value
+    daily_drive_playlist = user.settings.where(key: "DAILY_DRIVE_PLAYLIST").first.value rescue nil
 
     playlist_details = follows_playlist?(daily_drive_playlist)
 
