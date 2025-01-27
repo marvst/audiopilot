@@ -1,4 +1,3 @@
-# TODO
+# Daily Drive
 
-[ ] Create cron to generate the playlists every day
-[ ] Paginate playlists and shows get request
+Create a personalized Daily Drive playlist with your favorite songs and podcasts.
