@@ -1,3 +1,5 @@
-# Daily Drive
+# Audiopilot
 
-Create a personalized playlist with your favorite songs and podcasts, inspired by the Daily Drive playlist from Spotify.
+Generate a personalized playlist with your favorite songs and podcasts to autopilot your day.
+
+> Inspired by the Daily Drive from Spotify.
