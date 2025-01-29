@@ -1,6 +1,8 @@
 Rails.application.routes.draw do
+  get 'login/index'
   get  'setup/index'
   get  '/',         to: 'home#index'
+  # get  '/login',    to: 'login#index'
   get  '/callback', to: 'home#callback'
   get  '/setup',    to: 'home#setup'
   post '/setup',    to: 'home#save_setup'

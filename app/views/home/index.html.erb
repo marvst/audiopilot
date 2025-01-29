@@ -1,7 +1,4 @@
-<h2>Hey, please log in to access your account</h2>
-<% if flash[:info] %>
-    <article style="background-color: #1b5e20; color: #fff">
-        <%= flash[:info] %>
-    </article>
-<% end %>
-<a href="<%= @spotify_auth_url %>" role="button">Log in with Spotify</a>
+<div>
+    <h2>Sign in to access your account</h2>
+    <a href="<%= @spotify_auth_url %>" role="button">Sign in with Spotify</a>
+</div>

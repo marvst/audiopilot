@@ -1,19 +1,10 @@
-<% if flash[:info] %>
-    <article style="background-color: #1b5e20; color: #fff">
-        <%= flash[:info] %>
-    </article>
-<% end %>
-
-<% if flash[:error] %>
-    <article style="background-color: #D93526; color: #fff">
-        <%= flash[:error] %>
-    </article>
-<% end %>
-
 <hgroup>
-    <h1>Set up your Daily Drive</h1>
+    <h1>Set up your playlist</h1>
     <p><%=session['user_email']%></p>
 </hgroup>
+<form action="/generate" method="POST" >
+    <button class="primary">Generate playlist</button>
+</form>
 <hr />
 <form method="post" target="/setup">
     <section>
@@ -70,5 +61,6 @@
     <input
         type="submit"
         value="Save changes"
+        class="secondary"
     />
 </form>

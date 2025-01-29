@@ -50,7 +50,7 @@ class HomeController < ApplicationController
     user = User.find_by(spotify_user_id: session['spotify_user_id'])
     
     unless user_logged_in?
-      flash[:info] = "You need to log in"
+      flash[:info] = "Sign in to your account first."
       redirect_to "/"
       
       return
@@ -81,7 +81,7 @@ class HomeController < ApplicationController
     @split = user.settings.where(key: "SPLIT_SIZE").first.value rescue 5
     @time_to_generate = user.settings.where(key: "TIME_TO_GENERATE").first.value rescue 60
   rescue => e
-    flash[:error] = "Something weird happened. You'll have to log in again."
+    flash[:error] = "Something weird happened. Please, sign in again."
     
     redirect_to "/"
 
@@ -124,7 +124,7 @@ class HomeController < ApplicationController
 
     flash[:info] = "Changes saved successfully."
   rescue Exception => e
-    flash[:error] = "Failed to save the changes. Try again."
+    flash[:error] = "Failed to save changes. Please, try again."
     puts "ERROR: #{e}"
   ensure
     redirect_to "/setup"
@@ -170,7 +170,7 @@ class HomeController < ApplicationController
     if updated
       flash[:info] = "Playlist generated successfully."
     else
-      flash[:error] = "Playlist not generated."
+      flash[:error] = "Playlist not generated. Please, try again."
     end
 
     redirect_to "/setup"
@@ -302,7 +302,7 @@ class HomeController < ApplicationController
       },
       body: JSON.generate(
         {
-          name: "Custom Daily Drive",
+          name: "Audiopilot",
           public: false
         }
       )
