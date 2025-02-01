@@ -6,7 +6,7 @@ Rails.application.routes.draw do
   post '/setup',    to: 'setup#save_setup'
   get  '/signout',  to: 'setup#sign_out'
   get  '/auth',     to: 'home#auth'
-  post '/generate', to: 'home#generate_daily_drive'
+  post '/generate', to: 'setup#generate_playlist'
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
 
   # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.
