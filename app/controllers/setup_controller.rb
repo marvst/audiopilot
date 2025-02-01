@@ -72,17 +72,8 @@ class SetupController < ApplicationController
     flash[:info] = "Playlist generated successfully."
 
     redirect_to "/setup"
-  rescue StandardError => err
+  rescue StandardError
     flash[:error] = "Failed to generate playlist. Please, try again."
-    puts
-    puts
-    puts
-    puts
-    puts err
-    puts
-    puts
-    puts
-
     redirect_to "/setup"
   end
 end
