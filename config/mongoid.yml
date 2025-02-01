@@ -1,4 +1,4 @@
 development:
   clients:
     default:
-      uri: mongodb+srv://audiopilot-prod:NqHQRjjEE1VOoyS7@trivia.3ooiv.mongodb.net/audiopilot
+      uri: <%= ENV.fetch("MONGO_CONNECTION_STRING") %>
