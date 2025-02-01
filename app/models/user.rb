@@ -5,7 +5,7 @@ class User
     field :streaming_service, type: String
     field :streaming_data, type: Hash
 
-    has_many :playlists
+    has_one :playlist
 
     def set_access_token(access_token)
       @access_token = access_token
