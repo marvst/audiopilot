@@ -2,3 +2,8 @@ development:
   clients:
     default:
       uri: <%= ENV.fetch("MONGO_CONNECTION_STRING") %>
+
+production:
+  clients:
+    default:
+      uri: <%= ENV.fetch("MONGO_CONNECTION_STRING") %>
