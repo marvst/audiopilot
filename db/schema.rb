@@ -31,23 +31,4 @@ ActiveRecord::Schema[7.1].define(version: 2024_05_26_162502) do
   enable_extension "plpgsql"
   enable_extension "supabase_vault"
   enable_extension "uuid-ossp"
-
-  create_table "settings", force: :cascade do |t|
-    t.bigint "user_id", null: false
-    t.string "key"
-    t.string "value"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["user_id"], name: "index_settings_on_user_id"
-  end
-
-  create_table "users", force: :cascade do |t|
-    t.string "email"
-    t.string "spotify_user_id"
-    t.string "spotify_refresh_token"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-  end
-
-  add_foreign_key "settings", "users"
 end

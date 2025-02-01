@@ -36,11 +36,11 @@
         </article>
       <% elsif flash[:success] %>
         <article style="background-color: #1b5e20; color: #fff">
-            <%= flash[:info] %>
+            <%= flash[:success] %>
         </article>
       <% elsif flash[:error] %>
         <article style="background-color:rgb(94, 28, 27); color: #fff">
-            <%= flash[:info] %>
+            <%= flash[:error] %>
         </article>
       <% end %>
       <%= yield %>

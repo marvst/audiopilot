@@ -1,2 +1,61 @@
-<h1>Setup#index</h1>
-<p>Find me in app/views/setup/index.html.erb</p>
+<hgroup>
+    <h1>Set up your playlist</h1>
+    <p><%=session['user_email']%></p>
+</hgroup>
+<form action="/generate" method="POST" >
+    <button class="primary">Generate playlist</button>
+</form>
+<hr />
+<form method="post" target="/setup">
+    <section>
+        <h5>Which tracks would you like to listen?</h5>
+        <details class="dropdown" style="max-height: 100px">
+            <summary>
+                Select an option
+            </summary>
+            <ul>
+                <small style="padding: 15px">Your Playlists</small>
+                <% @playlists_from_streaming_service.each do |playlist| %>
+                    <li>
+                        <label>
+                            <input type="checkbox" name="playlists[]" value="<%= playlist['id'] %>" <%= if @playlist_config['playlists']&.include?(playlist['id']) then checked="checked" end  %> />
+                            <%= playlist['name'] %>
+                        </label>
+                    </li>
+                <% end %>
+            </ul>
+        </details>
+    </section>
+    <section>
+        <hgroup>
+            <h5>From which shows would you like the latest episodes to be included?</h5>
+            <small>Please note that if the episode has already been listened, it will be skipped.</small>
+        </hgroup>
+        <details class="dropdown" style="max-height: 100px">
+            <summary>
+                Select one or more options
+            </summary>
+            <ul>
+                <% @shows_from_streaming_service.each do |show| %>
+                    <li>
+                        <label>
+                            <input type="checkbox" name="shows[]" value="<%= show['show']['id'] %>" <%= if @playlist_config['shows']&.include?(show['show']['id']) then checked="checked" end %> />
+                            <%= show['show']['name'] %>
+                        </label>
+                    </li>
+                <% end %>
+            </ul>
+        </details>
+    </section>
+
+     <section>
+        <h5>After how many tracks would you like to listen to a show's episode?</h5>
+        <input type="number" value="<%= @playlist_config['split'] %>" name="split">
+    </section>
+
+    <input
+        type="submit"
+        value="Save changes"
+        class="secondary"
+    />
+</form>

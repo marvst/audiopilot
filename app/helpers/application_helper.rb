@@ -9,6 +9,6 @@ module ApplicationHelper
     end
 
     def current_user
-        @current_user ||= User.find_by(spotify_user_id: session['spotify_user_id']) if session['spotify_user_id']
+        @current_user ||= User.where(email: session['user_email'], streaming_service: 'SPOTIFY').first if session['user_email']
     end
 end

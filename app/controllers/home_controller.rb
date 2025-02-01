@@ -28,14 +28,20 @@ class HomeController < ApplicationController
       }
     ).parsed_response
   
-    user = User.find_or_create_by(spotify_user_id: user_details['id']) do |u|
+    user = User.where(email: user_details['email'], streaming_service: 'SPOTIFY').first_or_create do |u|
       u.email = user_details['email']
-      u.spotify_refresh_token = access_tokens['refresh_token']
+      u.streaming_service = "SPOTIFY"
+      u.streaming_data ||= {}
+      u.streaming_data['spotify_user_id'] = user_details['id']
+      u.streaming_data['spotify_refresh_token'] = access_tokens['refresh_token']
     end
   
     session['user_id'] = user.id
-    session['spotify_user_id'] = user_details['id']
     session['user_email'] = user_details['email']
+  
+    session['streaming_service'] = "SPOTIFY"
+    
+    session['spotify_user_id'] = user_details['id']
     session['spotify_refresh_token'] = access_tokens['refresh_token']
     session['spotify_access_token'] = access_tokens['access_token']
 
