@@ -82,6 +82,7 @@ GEM
     bindex (0.8.1)
     bootsnap (1.18.3)
       msgpack (~> 1.2)
+    bson (1.12.5)
     builder (3.2.4)
     capybara (3.40.0)
       addressable
@@ -102,6 +103,7 @@ GEM
       reline (>= 0.3.8)
     dotenv (3.1.2)
     drb (2.2.1)
+    durran-validatable (2.0.1)
     erubi (1.12.0)
     globalid (1.2.1)
       activesupport (>= 6.1)
@@ -122,6 +124,7 @@ GEM
     jbuilder (2.12.0)
       actionview (>= 5.0.0)
       activesupport (>= 5.0.0)
+    leshill-will_paginate (2.3.11)
     loofah (2.22.0)
       crass (~> 1.0.2)
       nokogiri (>= 1.12.0)
@@ -134,6 +137,13 @@ GEM
     matrix (0.4.2)
     mini_mime (1.1.5)
     minitest (5.23.1)
+    mongo (1.12.5)
+      bson (= 1.12.5)
+    mongoid (1.0.6)
+      activesupport (>= 2.2.2)
+      durran-validatable (>= 2.0.1)
+      leshill-will_paginate (>= 2.3.11)
+      mongo (>= 0.18.2)
     msgpack (1.7.2)
     multi_xml (0.7.1)
       bigdecimal (~> 3.1)
@@ -254,6 +264,7 @@ DEPENDENCIES
   httparty
   importmap-rails
   jbuilder
+  mongoid
   pg
   puma (>= 5.0)
   rails (~> 7.1.3)

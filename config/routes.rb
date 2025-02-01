@@ -1,12 +1,10 @@
 Rails.application.routes.draw do
-  get 'login/index'
-  get  'setup/index'
+  resources :playlists
   get  '/',         to: 'home#index'
-  # get  '/login',    to: 'login#index'
   get  '/callback', to: 'home#callback'
-  get  '/setup',    to: 'home#setup'
-  post '/setup',    to: 'home#save_setup'
-  get  '/logout',   to: 'home#log_out'
+  get  '/setup',    to: 'setup#index'
+  post '/setup',    to: 'setup#save_setup'
+  get  '/signout',  to: 'setup#sign_out'
   get  '/auth',     to: 'home#auth'
   post '/generate', to: 'home#generate_daily_drive'
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html

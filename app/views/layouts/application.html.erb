@@ -21,10 +21,10 @@
           <a href="/"><strong>Audiopilot</strong></a>
         </li>
       </ul>
-      <% if user_logged_in? %>
+      <% if current_user %>
       <ul>
         <li>
-          <a href="/logout">Sign out</a>
+          <a href="/signout">Sign out</a>
         </li>
       </ul>
       <% end %>

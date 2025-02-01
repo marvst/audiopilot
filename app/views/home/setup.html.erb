@@ -18,7 +18,7 @@
                 <% @playlists.each do |playlist| %>
                     <li>
                         <label>
-                            <input type="checkbox" name="playlists[]" value="<%= playlist['id'] %>" <%= if @selected_playlists.include?(playlist['id']) then checked="checked" end  %> />
+                            <input type="checkbox" name="playlists[]" value="<%= playlist['id'] %>" <%= if @config['selected_playlists'].include?(playlist['id']) then checked="checked" end  %> />
                             <%= playlist['name'] %>
                         </label>
                     </li>
@@ -39,7 +39,7 @@
                 <% @shows.each do |show| %>
                     <li>
                         <label>
-                            <input type="checkbox" name="shows[]" value="<%= show['show']['id'] %>" <%= if @selected_shows.include?(show['show']['id']) then checked="checked" end %> />
+                            <input type="checkbox" name="shows[]" value="<%= show['show']['id'] %>" <%= if @config['selected_shows'].include?(show['show']['id']) then checked="checked" end %> />
                             <%= show['show']['name'] %>
                         </label>
                     </li>
@@ -50,12 +50,7 @@
 
      <section>
         <h5>After how many tracks would you like to listen to a show's episode?</h5>
-        <input type="number" value="<%= @split %>" name="split">
-    </section>
-
-    <section>
-        <h5>At which time (UTC) do you want the playlist to be generated everyday?</h5>
-        <input type="time" name="time" value="<%= @time_to_generate %>">
+        <input type="number" value="<%= @config['split'] %>" name="split">
     </section>
 
     <input
